@@ -74,6 +74,7 @@ constructor(
     private var currentMediaItemIndex = 0
     private var playbackPosition: Long = 0
 
+    var playbackBitrate: Int? = null
     var playbackSpeed: Float = 1f
     var disableSubtitle: Boolean = false
 
@@ -321,6 +322,11 @@ constructor(
     fun selectSpeed(speed: Float) {
         player.setPlaybackSpeed(speed)
         playbackSpeed = speed
+    }
+
+    fun selectBitrate(bitrate: Int?) {
+        // TODO: Change video bitrate
+        playbackBitrate = bitrate
     }
 
     private suspend fun getTrickPlay(itemId: UUID) {

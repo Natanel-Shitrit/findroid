@@ -20,6 +20,7 @@ import androidx.media3.ui.TrackSelectionDialogBuilder
 import androidx.navigation.navArgs
 import dagger.hilt.android.AndroidEntryPoint
 import dev.jdtech.jellyfin.databinding.ActivityPlayerBinding
+import dev.jdtech.jellyfin.dialogs.QualitySelectionDialogFragment
 import dev.jdtech.jellyfin.dialogs.SpeedSelectionDialogFragment
 import dev.jdtech.jellyfin.dialogs.TrackSelectionDialogFragment
 import dev.jdtech.jellyfin.mpv.MPVPlayer
@@ -87,6 +88,7 @@ class PlayerActivity : BasePlayerActivity() {
 
         val audioButton = binding.playerView.findViewById<ImageButton>(R.id.btn_audio_track)
         val subtitleButton = binding.playerView.findViewById<ImageButton>(R.id.btn_subtitle)
+        val qualityButton = binding.playerView.findViewById<ImageButton>(R.id.btn_quality)
         val speedButton = binding.playerView.findViewById<ImageButton>(R.id.btn_speed)
         val skipIntroButton = binding.playerView.findViewById<Button>(R.id.btn_skip_intro)
         val lockButton = binding.playerView.findViewById<ImageButton>(R.id.btn_lockview)
@@ -100,6 +102,9 @@ class PlayerActivity : BasePlayerActivity() {
 
         subtitleButton.isEnabled = false
         subtitleButton.imageAlpha = 75
+
+        qualityButton.isEnabled = false
+        qualityButton.imageAlpha = 75
 
         speedButton.isEnabled = false
         speedButton.imageAlpha = 75
@@ -189,6 +194,13 @@ class PlayerActivity : BasePlayerActivity() {
             }
         }
 
+        qualityButton.setOnClickListener {
+            QualitySelectionDialogFragment(viewModel).show(
+                supportFragmentManager,
+                "qualityselectiondialog",
+            )
+        }
+
         speedButton.setOnClickListener {
             SpeedSelectionDialogFragment(viewModel).show(
                 supportFragmentManager,
@@ -229,6 +241,8 @@ class PlayerActivity : BasePlayerActivity() {
                 subtitleButton.imageAlpha = 255
                 speedButton.isEnabled = true
                 speedButton.imageAlpha = 255
+                qualityButton.isEnabled = true
+                qualityButton.imageAlpha = 255
             }
         }
 
