@@ -17,7 +17,7 @@ class QualitySelectionDialogFragment(
 
         return activity?.let { activity ->
             val builder = MaterialAlertDialogBuilder(activity)
-            builder.setTitle(getString(R.string.select_playback_speed))
+            builder.setTitle(getString(R.string.select_playback_quality))
                 .setSingleChoiceItems(
                     qualityTexts.toTypedArray(),
                     qualityBitrate.indexOf(viewModel.playbackBitrate),
