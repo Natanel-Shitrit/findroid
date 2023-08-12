@@ -8,6 +8,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.graphics.Color
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +31,7 @@ import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.DefaultTimeBar
+import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
 import androidx.navigation.navArgs
@@ -163,6 +165,25 @@ class PlayerActivity : BasePlayerActivity() {
                                 speedButton.imageAlpha = 255
                                 pipButton.isEnabled = true
                                 pipButton.imageAlpha = 255
+
+                                if (true /*appPreferences.showChapterMarkers*/) { // TODO: Implement preference for chapter markers
+                                    val playerControlView = findViewById<PlayerControlView>(R.id.exo_controller)
+                                    val chapters: LongArray = when (viewModel.player) {
+                                        is MPVPlayer -> {
+                                            val player = (viewModel.player as MPVPlayer)
+                                            LongArray(player.getNumberOfChapters()) { index -> player.getChapterTime(index).toLong() * 1000 }
+                                        }
+                                        is ExoPlayer -> {
+                                            LongArray(0)
+                                        }
+                                        else -> LongArray(0)
+                                    }
+
+                                    playerControlView.setExtraAdGroupMarkers(
+                                        chapters,
+                                        BooleanArray(chapters.size) { false }
+                                    )
+                                }
                             }
                         }
                     }
@@ -293,9 +314,12 @@ class PlayerActivity : BasePlayerActivity() {
             pictureInPicture()
         }
 
+        // Set marker color
+        val timeBar = binding.playerView.findViewById<DefaultTimeBar>(R.id.exo_progress)
+        timeBar.setAdMarkerColor(Color.WHITE) // TODO: Use device color?
+
         if (appPreferences.playerTrickPlay) {
             val imagePreview = binding.playerView.findViewById<ImageView>(R.id.image_preview)
-            val timeBar = binding.playerView.findViewById<DefaultTimeBar>(R.id.exo_progress)
             previewScrubListener = PreviewScrubListener(
                 imagePreview,
                 timeBar,
