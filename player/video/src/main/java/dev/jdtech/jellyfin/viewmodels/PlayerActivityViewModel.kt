@@ -6,14 +6,11 @@ import android.os.Looper
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.jdtech.jellyfin.AppPreferences
 import dev.jdtech.jellyfin.models.Intro
@@ -48,7 +45,7 @@ constructor(
     private val appPreferences: AppPreferences,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel(), Player.Listener {
-    val player: Player
+    val player: MPVPlayer
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -79,7 +76,6 @@ constructor(
 
     private var items: Array<PlayerItem> = arrayOf()
 
-    val trackSelector = DefaultTrackSelector(application)
     var playWhenReady = true
     private var currentMediaItemIndex = savedStateHandle["mediaItemIndex"] ?: 0
     private var playbackPosition: Long = savedStateHandle["position"] ?: 0
@@ -90,37 +86,11 @@ constructor(
     private val handler = Handler(Looper.getMainLooper())
 
     init {
-        if (appPreferences.playerMpv) {
-            player = MPVPlayer(
-                application,
-                false,
-                appPreferences,
-            )
-        } else {
-            val renderersFactory =
-                DefaultRenderersFactory(application).setExtensionRendererMode(
-                    DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON,
-                )
-            trackSelector.setParameters(
-                trackSelector.buildUponParameters()
-                    .setTunnelingEnabled(true)
-                    .setPreferredAudioLanguage(appPreferences.preferredAudioLanguage)
-                    .setPreferredTextLanguage(appPreferences.preferredSubtitleLanguage),
-            )
-            player = ExoPlayer.Builder(application, renderersFactory)
-                .setTrackSelector(trackSelector)
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                        .setUsage(C.USAGE_MEDIA)
-                        .build(),
-                    /* handleAudioFocus = */
-                    true,
-                )
-                .setSeekBackIncrementMs(appPreferences.playerSeekBackIncrement)
-                .setSeekForwardIncrementMs(appPreferences.playerSeekForwardIncrement)
-                .build()
-        }
+        player = MPVPlayer(
+            application,
+            false,
+            appPreferences,
+        )
     }
 
     fun initializePlayer(
@@ -177,11 +147,11 @@ constructor(
                 currentMediaItemIndex,
                 startPosition,
             )
-            if (appPreferences.playerMpv) { // For some reason, adding a 1ms delay between these two lines fixes a crash when playing with mpv from downloads
-                withContext(Dispatchers.IO) {
-                    Thread.sleep(1)
-                }
+            // For some reason, adding a 1ms delay between these two lines fixes a crash when playing with mpv from downloads
+            withContext(Dispatchers.IO) {
+                Thread.sleep(1)
             }
+
             player.prepare()
             player.play()
             pollPosition(player)
@@ -298,18 +268,14 @@ constructor(
                 stateString = "ExoPlayer.STATE_READY     -"
                 currentAudioTracks.clear()
                 currentSubtitleTracks.clear()
-                when (player) {
-                    is MPVPlayer -> {
-                        player.currentMpvTracks.forEach {
-                            when (it.type) {
-                                TrackType.VIDEO -> Unit
-                                TrackType.AUDIO -> {
-                                    currentAudioTracks.add(it)
-                                }
-                                TrackType.SUBTITLE -> {
-                                    currentSubtitleTracks.add(it)
-                                }
-                            }
+                player.currentMpvTracks.forEach {
+                    when (it.type) {
+                        TrackType.VIDEO -> Unit
+                        TrackType.AUDIO -> {
+                            currentAudioTracks.add(it)
+                        }
+                        TrackType.SUBTITLE -> {
+                            currentSubtitleTracks.add(it)
                         }
                     }
                 }
@@ -331,10 +297,8 @@ constructor(
     }
 
     fun switchToTrack(trackType: TrackType, track: MPVPlayer.Companion.Track) {
-        if (player is MPVPlayer) {
-            player.selectTrack(trackType, id = track.id)
-            disableSubtitle = track.ffIndex == -1
-        }
+        player.selectTrack(trackType, id = track.id)
+        disableSubtitle = track.ffIndex == -1
     }
 
     fun selectSpeed(speed: Float) {
