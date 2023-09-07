@@ -63,10 +63,6 @@ class MainActivity : AppCompatActivity() {
 
         workManager.beginUniqueWork("syncUserData", ExistingWorkPolicy.KEEP, syncWorkRequest).enqueue()
 
-        if (!appPreferences.downloadsMigrated) {
-            cleanUpOldDownloads()
-        }
-
         if (appPreferences.amoledTheme) {
             setTheme(CoreR.style.Theme_FindroidAMOLED)
         }
@@ -150,27 +146,6 @@ class MainActivity : AppCompatActivity() {
                     onNoUser()
                 }
             }
-        }
-    }
-
-    /**
-     * Temp to remove old downloads, will be removed in a future version
-     */
-    private fun cleanUpOldDownloads() {
-        lifecycleScope.launch {
-            val oldDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
-            if (oldDir == null) {
-                appPreferences.downloadsMigrated = true
-                return@launch
-            }
-
-            try {
-                for (file in oldDir.listFiles()!!) {
-                    file.delete()
-                }
-            } catch (_: Exception) {}
-
-            appPreferences.downloadsMigrated = true
         }
     }
 }
