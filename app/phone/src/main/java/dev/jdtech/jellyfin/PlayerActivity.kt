@@ -162,8 +162,6 @@ class PlayerActivity : BasePlayerActivity() {
                                 speedButton.imageAlpha = 255
                                 pipButton.isEnabled = true
                                 pipButton.imageAlpha = 255
-
-                                loadChapters()
                             }
                         }
                     }
@@ -173,6 +171,7 @@ class PlayerActivity : BasePlayerActivity() {
                     viewModel.eventsChannelFlow.collect { event ->
                         when (event) {
                             is PlayerEvents.NavigateBack -> finish()
+                            is PlayerEvents.PlayerReady -> loadChapters()
                         }
                     }
                 }
