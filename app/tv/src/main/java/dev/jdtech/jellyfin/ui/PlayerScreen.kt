@@ -47,6 +47,7 @@ import dev.jdtech.jellyfin.ui.components.player.VideoPlayerOverlay
 import dev.jdtech.jellyfin.ui.components.player.VideoPlayerSeeker
 import dev.jdtech.jellyfin.ui.components.player.VideoPlayerState
 import dev.jdtech.jellyfin.ui.components.player.rememberVideoPlayerState
+import dev.jdtech.jellyfin.ui.dialogs.VideoPlayerTrackSelectorDialogResult
 import dev.jdtech.jellyfin.ui.theme.spacings
 import dev.jdtech.jellyfin.utils.handleDPadKeyEvents
 import dev.jdtech.jellyfin.viewmodels.PlayerActivityViewModel
@@ -59,7 +60,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun PlayerScreen(
     navigator: DestinationsNavigator,
     items: ArrayList<PlayerItem>,
-    resultRecipient: ResultRecipient<VideoPlayerTrackSelectorDialogDestination, Int>,
+    resultRecipient: ResultRecipient<VideoPlayerTrackSelectorDialogDestination, VideoPlayerTrackSelectorDialogResult>,
 ) {
     val viewModel = hiltViewModel<PlayerActivityViewModel>()
 
@@ -120,12 +121,24 @@ fun PlayerScreen(
         when (result) {
             is NavResult.Canceled -> Unit
             is NavResult.Value -> {
-                viewModel.player.trackSelectionParameters = viewModel.player.trackSelectionParameters
-                    .buildUpon()
-                    .setOverrideForType(
-                        TrackSelectionOverride(viewModel.player.currentTracks.groups[result.value].mediaTrackGroup, 0),
-                    )
-                    .build()
+                val trackType = result.value.trackType
+                val index = result.value.index
+
+                if (index == -1) {
+                    viewModel.player.trackSelectionParameters = viewModel.player.trackSelectionParameters
+                        .buildUpon()
+                        .clearOverridesOfType(trackType)
+                        .setTrackTypeDisabled(trackType, true)
+                        .build()
+                } else {
+                    viewModel.player.trackSelectionParameters = viewModel.player.trackSelectionParameters
+                        .buildUpon()
+                        .setOverrideForType(
+                            TrackSelectionOverride(viewModel.player.currentTracks.groups[index].mediaTrackGroup, 0),
+                        )
+                        .setTrackTypeDisabled(trackType, false)
+                        .build()
+                }
             }
         }
     }
@@ -238,7 +251,7 @@ fun VideoPlayerControls(
                     isPlaying = isPlaying,
                     onClick = {
                         val tracks = getTracks(player, C.TRACK_TYPE_AUDIO)
-                        navigator.navigate(VideoPlayerTrackSelectorDialogDestination(tracks))
+                        navigator.navigate(VideoPlayerTrackSelectorDialogDestination(C.TRACK_TYPE_AUDIO, tracks))
                     },
                 )
                 VideoPlayerMediaButton(
@@ -247,7 +260,7 @@ fun VideoPlayerControls(
                     isPlaying = isPlaying,
                     onClick = {
                         val tracks = getTracks(player, C.TRACK_TYPE_TEXT)
-                        navigator.navigate(VideoPlayerTrackSelectorDialogDestination(tracks))
+                        navigator.navigate(VideoPlayerTrackSelectorDialogDestination(C.TRACK_TYPE_TEXT, tracks))
                     },
                 )
             }
@@ -270,28 +283,33 @@ private fun Modifier.dPadEvents(
 )
 
 @androidx.annotation.OptIn(UnstableApi::class)
-private fun getTracks(player: Player, type: Int): ArrayList<Track> {
+private fun getTracks(player: Player, type: Int): Array<Track> {
     val tracks = arrayListOf<Track>()
     for (groupIndex in 0 until player.currentTracks.groups.count()) {
         val group = player.currentTracks.groups[groupIndex]
         if (group.type == type) {
             val format = group.mediaTrackGroup.getFormat(0)
 
-            val label = format.label
-            val language = Locale(format.language.toString()).displayLanguage
-            val codec = format.codecs
-            val selected = group.isSelected
-
             val track = Track(
                 id = groupIndex,
-                label = label,
-                language = language,
-                codec = codec,
-                selected = selected,
+                label = format.label,
+                language = Locale(format.language.toString()).displayLanguage,
+                codec = format.codecs,
+                selected = group.isSelected,
+                supported = group.isSupported,
             )
 
             tracks.add(track)
         }
     }
-    return tracks
+
+    val noneTrack = Track(
+        id = -1,
+        label = null,
+        language = null,
+        codec = null,
+        selected = !tracks.any { it.selected },
+        supported = true,
+    )
+    return arrayOf(noneTrack) + tracks
 }
