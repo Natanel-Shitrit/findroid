@@ -14,6 +14,7 @@ You can install this app alongside the official release of findroid. You can dow
 - Open season view from episode
 - Add season downloads
 - MKV Chapter additions
+- Set sort order for collection view to release date
 
 # Findroid (upstream)
 
