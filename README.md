@@ -1,6 +1,21 @@
 ![Findroid banner](images/findroid-banner.png)
 
-# Findroid
+# Findroid (bleeding)
+
+## Difference from upstream
+Findroid has quite a few open pull requests which add great new features, which have not yet been merged due to a lack of time from the upstream maintainer. Because I'd still like to use all these new features together, I've decided to make a soft fork which carelessly merges (some of) these open pull requests. I don't extensively test or review these, so bugs are very much to be expected. Use this if you like to be on the bleeding edge of findroid's new features. 
+
+## Installing
+You can install this app alongside the official release of findroid. You can download the apk's from [here](https://nightly.link/Jcuhfehl/findroid/workflows/build.yaml/bleeding), you probably need phone-libre-arm64-v8a-debug.apk.
+
+## Merged Pull Requests
+- Add option to automatically turn on offline mode
+- Add support for mixed libraries
+- Open season view from episode
+- Add season downloads
+- MKV Chapter additions
+
+# Findroid (upstream)
 
 Findroid is third-party Android application for Jellyfin that provides a native user interface to browse and play movies and series.
 
@@ -57,3 +72,4 @@ The Android robot is reproduced or modified from work created and shared by Goog
 Android is a trademark of Google LLC.
 
 Google Play and the Google Play logo are trademarks of Google LLC.
+

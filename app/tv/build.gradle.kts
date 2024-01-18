@@ -13,7 +13,7 @@ android {
     buildToolsVersion = Versions.buildTools
 
     defaultConfig {
-        applicationId = "dev.jdtech.jellyfin"
+        applicationId = "io.github.jcuhfehl.findroid"
         minSdk = Versions.minSdk
         targetSdk = Versions.targetSdk
 
@@ -110,3 +110,4 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
+
