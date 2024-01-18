@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.Rect
 import android.media.AudioManager
 import android.os.Build
@@ -29,6 +30,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.DefaultTimeBar
+import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
 import androidx.navigation.navArgs
 import dagger.hilt.android.AndroidEntryPoint
@@ -169,6 +171,7 @@ class PlayerActivity : BasePlayerActivity() {
                     viewModel.eventsChannelFlow.collect { event ->
                         when (event) {
                             is PlayerEvents.NavigateBack -> finish()
+                            is PlayerEvents.PlayerReady -> loadChapters()
                         }
                     }
                 }
@@ -238,9 +241,12 @@ class PlayerActivity : BasePlayerActivity() {
             pictureInPicture()
         }
 
+        // Set marker color
+        val timeBar = binding.playerView.findViewById<DefaultTimeBar>(R.id.exo_progress)
+        timeBar.setAdMarkerColor(Color.WHITE)
+
         if (appPreferences.playerTrickPlay) {
             val imagePreview = binding.playerView.findViewById<ImageView>(R.id.image_preview)
-            val timeBar = binding.playerView.findViewById<DefaultTimeBar>(R.id.exo_progress)
             previewScrubListener = PreviewScrubListener(
                 imagePreview,
                 timeBar,
@@ -252,6 +258,24 @@ class PlayerActivity : BasePlayerActivity() {
 
         viewModel.initializePlayer(args.items)
         hideSystemUI()
+    }
+
+    private fun loadChapters() {
+        if (appPreferences.showChapterMarkers) {
+            val playerControlView = findViewById<PlayerControlView>(R.id.exo_controller)
+            val chapters: LongArray = when (viewModel.player) {
+                is MPVPlayer -> {
+                    val player = (viewModel.player as MPVPlayer)
+                    LongArray(player.getNumberOfChapters()) { index -> player.getChapterTime(index).toLong() * 1000 }
+                }
+                else -> LongArray(0)
+            }
+
+            playerControlView.setExtraAdGroupMarkers(
+                chapters,
+                BooleanArray(chapters.size) { false },
+            )
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
