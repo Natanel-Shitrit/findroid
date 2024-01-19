@@ -55,6 +55,11 @@ class SeasonFragment : Fragment() {
             object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(dev.jdtech.jellyfin.core.R.menu.season_menu, menu)
+                    if (args.offline) {
+                        menu.findItem(CoreR.id.action_download_season).setVisible(false)
+                    } else {
+                        menu.findItem(CoreR.id.action_delete_season).setVisible(false)
+                    }
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -72,6 +77,13 @@ class SeasonFragment : Fragment() {
                                 return true
                             }
                             createEpisodesToDownloadDialog()
+                            return true
+                        }
+                        CoreR.id.action_delete_season -> {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                viewModel.delete()
+                                activity?.onBackPressed()
+                            }
                             return true
                         }
                         else -> false

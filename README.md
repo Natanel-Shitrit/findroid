@@ -1,5 +1,6 @@
 ![Findroid banner](images/findroid-banner.png)
 
+<<<<<<< HEAD
 # Findroid (bleeding)
 
 ## Difference from upstream
@@ -17,6 +18,15 @@ You can install this app alongside the official release of findroid. You can dow
 - Set sort order for collection view to release date
 
 # Findroid (upstream)
+=======
+# Findroid
+![GitHub release (with filter)](https://img.shields.io/github/v/release/jarnedemeulemeester/findroid?style=for-the-badge)
+![GitHub repo stars](https://img.shields.io/github/stars/jarnedemeulemeester/findroid?style=for-the-badge)
+![GitHub issues](https://img.shields.io/github/issues/jarnedemeulemeester/findroid?style=for-the-badge)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/jarnedemeulemeester/findroid?style=for-the-badge)
+![GitHub all releases](https://img.shields.io/github/downloads/jarnedemeulemeester/findroid/total?style=for-the-badge)
+![GitHub](https://img.shields.io/github/license/jarnedemeulemeester/findroid?style=for-the-badge)
+>>>>>>> Jcuhfehl/add-season-downloads
 
 Findroid is third-party Android application for Jellyfin that provides a native user interface to browse and play movies and series.
 
